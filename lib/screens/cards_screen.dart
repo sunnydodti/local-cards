@@ -6,6 +6,7 @@ import '../widgets/my_appbar.dart';
 import '../widgets/mobile_wrapper.dart';
 import '../widgets/card_tile.dart';
 import '../widgets/card_form.dart';
+import 'add_card_screen.dart';
 
 class CardsScreen extends StatelessWidget {
   const CardsScreen({super.key});
@@ -58,7 +59,9 @@ class CardsScreen extends StatelessWidget {
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () async {
-            await showDialog(context: context, builder: (_) => const CardFormDialog());
+            await Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const AddCardScreen()),
+            );
             // reload
             context.read<CardProvider>().load();
           },

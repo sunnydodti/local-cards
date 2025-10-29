@@ -15,29 +15,43 @@ class CardFormDialog extends StatefulWidget {
 
 class _CardFormDialogState extends State<CardFormDialog> {
   final _formKey = GlobalKey<FormState>();
-  late String holderName;
+  late String? issuer;
+  late CardNetwork? network;
+  late String? cardName;
   late String number;
   late int month;
   late int year;
-  String? brand;
-  CardType type = CardType.other;
+  late String? cvv;
+  late String? holderName;
+  CardType type = CardType.credit;
+  CardColorScheme? colorScheme;
 
   @override
   void initState() {
     super.initState();
     final e = widget.existing;
     if (e != null) {
-      holderName = e.holderName;
+      issuer = e.issuer;
+      network = e.network;
+      cardName = e.cardName;
       number = e.cardNumber;
       month = e.expiryMonth;
       year = e.expiryYear;
-      brand = e.brand;
+      cvv = e.cvv;
+      holderName = e.holderName;
       type = e.type;
+      colorScheme = e.colorScheme;
     } else {
-      holderName = '';
+      issuer = '';
+      network = null;
+      cardName = '';
       number = '';
       month = DateTime.now().month;
       year = DateTime.now().year + 3;
+      cvv = '';
+      holderName = '';
+      type = CardType.credit;
+      colorScheme = null;
     }
   }
 
@@ -47,12 +61,16 @@ class _CardFormDialogState extends State<CardFormDialog> {
     final prov = context.read<CardProvider>();
     final model = CardModel(
       id: widget.existing?.id ?? '',
-      holderName: holderName,
+      issuer: issuer,
+      network: network,
+      cardName: cardName,
       cardNumber: number,
       expiryMonth: month,
       expiryYear: year,
-      brand: brand,
+      cvv: cvv,
+      holderName: holderName,
       type: type,
+      colorScheme: colorScheme,
     );
     if (widget.existing == null) {
       await prov.addCard(model);
@@ -73,14 +91,26 @@ class _CardFormDialogState extends State<CardFormDialog> {
             mainAxisSize: MainAxisSize.min,
             children: [
               TextFormField(
-                initialValue: holderName,
-                decoration: const InputDecoration(labelText: 'Holder name'),
-                onSaved: (v) => holderName = v?.trim() ?? '',
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+                initialValue: issuer,
+                decoration: const InputDecoration(labelText: 'Issuer (Bank, etc)'),
+                onSaved: (v) => issuer = v?.trim(),
+              ),
+              DropdownButtonFormField<CardNetwork>(
+                value: network,
+                items: CardNetwork.values
+                    .map((n) => DropdownMenuItem(value: n, child: Text(n.name.toUpperCase())))
+                    .toList(),
+                onChanged: (v) => setState(() => network = v),
+                decoration: const InputDecoration(labelText: 'Card Network'),
+              ),
+              TextFormField(
+                initialValue: cardName,
+                decoration: const InputDecoration(labelText: 'Card Name (Black, Privilege, etc)'),
+                onSaved: (v) => cardName = v?.trim(),
               ),
               TextFormField(
                 initialValue: number,
-                decoration: const InputDecoration(labelText: 'Card number'),
+                decoration: const InputDecoration(labelText: 'Card Number'),
                 keyboardType: TextInputType.number,
                 onSaved: (v) => number = v?.replaceAll(' ', '') ?? '',
                 validator: (v) => (v == null || v.trim().length < 12) ? 'Invalid' : null,
@@ -107,18 +137,25 @@ class _CardFormDialogState extends State<CardFormDialog> {
                 ],
               ),
               TextFormField(
-                initialValue: brand,
-                decoration: const InputDecoration(labelText: 'Brand (optional)'),
-                onSaved: (v) => brand = v?.trim(),
+                initialValue: cvv,
+                decoration: const InputDecoration(labelText: 'CVV/CVC/CVD (optional)'),
+                keyboardType: TextInputType.number,
+                onSaved: (v) => cvv = v?.trim(),
+              ),
+              TextFormField(
+                initialValue: holderName,
+                decoration: const InputDecoration(labelText: 'Cardholder Name (optional)'),
+                onSaved: (v) => holderName = v?.trim(),
               ),
               DropdownButtonFormField<CardType>(
                 value: type,
                 items: CardType.values
                     .map((t) => DropdownMenuItem(value: t, child: Text(t.name)))
                     .toList(),
-                onChanged: (v) => setState(() => type = v ?? CardType.other),
-                decoration: const InputDecoration(labelText: 'Type'),
+                onChanged: (v) => setState(() => type = v ?? CardType.credit),
+                decoration: const InputDecoration(labelText: 'Card Type'),
               ),
+              // Color scheme picker can be added here if needed
             ],
           ),
         ),

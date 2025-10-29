@@ -65,8 +65,12 @@ class CardService {
 			cardNumber: card.cardNumber,
 			expiryMonth: card.expiryMonth,
 			expiryYear: card.expiryYear,
-			brand: card.brand,
+			issuer: card.issuer,
+			network: card.network,
+			cardName: card.cardName,
+			cvv: card.cvv,
 			type: card.type,
+			colorScheme: card.colorScheme,
 			createdAt: card.createdAt,
 			updatedAt: now,
 		);

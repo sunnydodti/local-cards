@@ -18,9 +18,9 @@ class CardTile extends StatelessWidget {
     return '•••• •••• •••• $last';
   }
 
-  String _networkFromBrand(String? brand) {
-    if (brand == null) return '';
-    final b = brand.toLowerCase();
+  String _networkFromIssuer(String? issuer) {
+    if (issuer == null) return '';
+    final b = issuer.toLowerCase();
     if (b.contains('visa')) return 'VISA';
     if (b.contains('master') || b.contains('mastercard')) return 'MASTERCARD';
     if (b.contains('amex') || b.contains('american')) return 'AMEX';
@@ -39,8 +39,8 @@ class CardTile extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            theme.colorScheme.primary.withOpacity(UIConstants.cardGradientOpacity),
-            Color.lerp(theme.colorScheme.primary, Colors.black, 0.25)!.withOpacity(UIConstants.cardGradientOpacity),
+            theme.colorScheme.primary.withValues(alpha: UIConstants.cardGradientOpacity),
+            Color.lerp(theme.colorScheme.primary, Colors.black, 0.25)!.withValues(alpha: UIConstants.cardGradientOpacity),
           ],
         ),
         boxShadow: [
@@ -61,12 +61,12 @@ class CardTile extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    card.brand ?? '',
+                    card.issuer ?? '',
                     style: theme.textTheme.labelLarge?.copyWith(color: Colors.white70),
                   ),
                 ),
                 Text(
-                  _networkFromBrand(card.brand),
+                  _networkFromIssuer(card.issuer),
                   style: theme.textTheme.labelLarge?.copyWith(color: Colors.white70),
                 ),
               ],
@@ -96,7 +96,7 @@ class CardTile extends StatelessWidget {
                     children: [
                       Text('Card Holder', style: theme.textTheme.labelSmall?.copyWith(color: Colors.white70)),
                       const SizedBox(height: 4),
-                      Text(card.holderName.toUpperCase(), style: theme.textTheme.titleMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.w700)),
+                      Text(card.holderName?.toUpperCase() ?? '', style: theme.textTheme.titleMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.w700)),
                     ],
                   ),
                 ),

@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:hive_ce_flutter/adapters.dart';
 
 import '../data/constants.dart';

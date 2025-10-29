@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/card.dart';
-import 'colored_text_box.dart';
+import '../data/ui_constants.dart';
 
 typedef EditCallback = void Function(CardModel card);
 typedef DeleteCallback = void Function(String id);
@@ -13,62 +13,103 @@ class CardTile extends StatelessWidget {
 
   const CardTile({super.key, required this.card, this.onEdit, this.onDelete});
 
-  Color _typeColor(CardType type) {
-    switch (type) {
-      case CardType.credit:
-        return Colors.green;
-      case CardType.debit:
-        return Colors.orange;
-      case CardType.other:
-        return Colors.grey;
-    }
+  String _maskedDisplay(String number) {
+    final last = number.length >= 4 ? number.substring(number.length - 4) : number;
+    return '•••• •••• •••• $last';
+  }
+
+  String _networkFromBrand(String? brand) {
+    if (brand == null) return '';
+    final b = brand.toLowerCase();
+    if (b.contains('visa')) return 'VISA';
+    if (b.contains('master') || b.contains('mastercard')) return 'MASTERCARD';
+    if (b.contains('amex') || b.contains('american')) return 'AMEX';
+    if (b.contains('discover')) return 'DISCOVER';
+    return '';
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Card(
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: UIConstants.cardVerticalMargin),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(UIConstants.cardRadius),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            theme.colorScheme.primary.withOpacity(UIConstants.cardGradientOpacity),
+            Color.lerp(theme.colorScheme.primary, Colors.black, 0.25)!.withOpacity(UIConstants.cardGradientOpacity),
+          ],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(UIConstants.cardShadowAlpha),
+            blurRadius: UIConstants.cardShadowBlur,
+            offset: Offset(0, UIConstants.cardShadowOffsetY),
+          ),
+        ],
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Row(
+        padding: EdgeInsets.symmetric(horizontal: UIConstants.cardPaddingHorizontal, vertical: UIConstants.cardPaddingVertical),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(card.holderName, style: theme.textTheme.titleMedium),
-                  const SizedBox(height: 6),
-                  Text(card.maskedNumber, style: theme.textTheme.bodyLarge),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      ColoredTextBox(
-                        text: card.type.name,
-                        color: _typeColor(card.type),
-                        fontSize: 12,
-                        upperCase: false,
-                      ),
-                      const SizedBox(width: 8),
-                      if (card.brand != null) Text(card.brand!),
-                      const Spacer(),
-                      Text('${card.expiryMonth.toString().padLeft(2, '0')}/${card.expiryYear.toString().substring(2)}'),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            Column(
+            // Row 1: Bank Name (left), Card Network (right)
+            Row(
               children: [
-                IconButton(
-                  icon: const Icon(Icons.edit_outlined),
-                  onPressed: () => onEdit?.call(card),
+                Expanded(
+                  child: Text(
+                    card.brand ?? '',
+                    style: theme.textTheme.labelLarge?.copyWith(color: Colors.white70),
+                  ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.delete_outline),
-                  onPressed: () => onDelete?.call(card.id),
+                Text(
+                  _networkFromBrand(card.brand),
+                  style: theme.textTheme.labelLarge?.copyWith(color: Colors.white70),
                 ),
               ],
-            )
+            ),
+
+            // Row 2: Card Number (masked) centered
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12.0),
+              child: Center(
+                child: Text(
+                  _maskedDisplay(card.cardNumber),
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    letterSpacing: UIConstants.maskedLetterSpacing,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+
+            // Row 3: Cardholder Name (left), Card Type (right)
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Card Holder', style: theme.textTheme.labelSmall?.copyWith(color: Colors.white70)),
+                      const SizedBox(height: 4),
+                      Text(card.holderName.toUpperCase(), style: theme.textTheme.titleMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.w700)),
+                    ],
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text('Type', style: theme.textTheme.labelSmall?.copyWith(color: Colors.white70)),
+                    const SizedBox(height: 4),
+                    Text(card.type.name.toUpperCase(), style: theme.textTheme.bodySmall?.copyWith(color: Colors.white)),
+                  ],
+                ),
+              ],
+            ),
           ],
         ),
       ),

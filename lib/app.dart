@@ -6,8 +6,8 @@ import 'data/provider/theme_provider.dart';
 import 'widgets/mobile_wrapper.dart';
 import 'widgets/my_appbar.dart';
 
-class SoundScript extends StatelessWidget {
-  const SoundScript({super.key});
+class LocalCards extends StatelessWidget {
+  const LocalCards({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -3,8 +3,8 @@ import 'package:provider/provider.dart';
 
 import 'data/constants.dart';
 import 'data/provider/theme_provider.dart';
+import 'screens/cards_screen.dart';
 import 'widgets/mobile_wrapper.dart';
-import 'widgets/my_appbar.dart';
 
 class LocalCards extends StatelessWidget {
   const LocalCards({super.key});
@@ -15,7 +15,7 @@ class LocalCards extends StatelessWidget {
       title: Constants.appDisplayName,
       theme: context.watch<ThemeProvider>().theme,
       home: MobileWrapper(
-        child: Scaffold(appBar: MyAppbar.build(context), body: Placeholder()),
+        child: CardsScreen(),
       ),
     );
   }

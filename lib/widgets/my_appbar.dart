@@ -13,7 +13,7 @@ class MyAppbar {
         ? Icon(Icons.light_mode_outlined)
         : Icon(Icons.dark_mode_outlined);
     IconButton backButton = IconButton(
-      onPressed: () {},
+      onPressed: () => Navigator.of(context).pop(),
       icon: Icon(Icons.arrow_back_outlined),
     );
     return AppBar(

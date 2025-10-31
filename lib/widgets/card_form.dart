@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../enums/card_type.dart';
 import '../models/card.dart';
 import '../data/provider/card_provider.dart';
+import '../models/card_network.dart';
 
 class CardFormDialog extends StatefulWidget {
   final CardModel? existing;

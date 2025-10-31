@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../enums/card_tile_type.dart';
 import '../models/card.dart';
 import '../data/ui_constants.dart';
 
@@ -8,111 +9,128 @@ typedef DeleteCallback = void Function(String id);
 
 class CardTile extends StatelessWidget {
   final CardModel card;
+  final CardTileType type;
   final EditCallback? onEdit;
   final DeleteCallback? onDelete;
 
-  const CardTile({super.key, required this.card, this.onEdit, this.onDelete});
-
-  String _maskedDisplay(String number) {
-    final last = number.length >= 4 ? number.substring(number.length - 4) : number;
-    return '•••• •••• •••• $last';
-  }
-
-  String _networkFromIssuer(String? issuer) {
-    if (issuer == null) return '';
-    final b = issuer.toLowerCase();
-    if (b.contains('visa')) return 'VISA';
-    if (b.contains('master') || b.contains('mastercard')) return 'MASTERCARD';
-    if (b.contains('amex') || b.contains('american')) return 'AMEX';
-    if (b.contains('discover')) return 'DISCOVER';
-    return '';
-  }
+  const CardTile(
+      {super.key,
+      required this.card,
+      this.onEdit,
+      this.onDelete,
+      this.type = CardTileType.masked});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
       margin: EdgeInsets.symmetric(vertical: UIConstants.cardVerticalMargin),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(UIConstants.cardRadius),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            theme.colorScheme.primary.withValues(alpha: UIConstants.cardGradientOpacity),
-            Color.lerp(theme.colorScheme.primary, Colors.black, 0.25)!.withValues(alpha: UIConstants.cardGradientOpacity),
-          ],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(UIConstants.cardShadowAlpha),
-            blurRadius: UIConstants.cardShadowBlur,
-            offset: Offset(0, UIConstants.cardShadowOffsetY),
-          ),
-        ],
-      ),
+      decoration: _getCardDecoration(theme),
       child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: UIConstants.cardPaddingHorizontal, vertical: UIConstants.cardPaddingVertical),
+        padding: EdgeInsets.symmetric(
+            horizontal: UIConstants.cardPaddingHorizontal,
+            vertical: UIConstants.cardPaddingVertical),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Row 1: Bank Name (left), Card Network (right)
             Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    card.issuer ?? '',
-                    style: theme.textTheme.labelLarge?.copyWith(color: Colors.white70),
-                  ),
-                ),
-                Text(
-                  _networkFromIssuer(card.issuer),
-                  style: theme.textTheme.labelLarge?.copyWith(color: Colors.white70),
-                ),
-              ],
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [Text(_issuerDisplayText), Text(_networkDisplayText)],
             ),
-
-            // Row 2: Card Number (masked) centered
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 12.0),
               child: Center(
                 child: Text(
-                  _maskedDisplay(card.cardNumber),
+                  _cardNumberDisplayText,
                   style: theme.textTheme.headlineSmall?.copyWith(
-                    letterSpacing: UIConstants.maskedLetterSpacing,
-                    color: Colors.white,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
             ),
-
-            // Row 3: Cardholder Name (left), Card Type (right)
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Card Holder', style: theme.textTheme.labelSmall?.copyWith(color: Colors.white70)),
-                      const SizedBox(height: 4),
-                      Text(card.holderName?.toUpperCase() ?? '', style: theme.textTheme.titleMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.w700)),
-                    ],
+                Text(_cardNameDisplayText),
+                if (type == CardTileType.preview)
+                  Expanded(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Text(_getExpiryDisplayText),
+                        if (card.cvv != null) SizedBox(width: 16),
+                        if (card.cvv != null) Text(_getCVVDisplayText),
+
+                      ],
+                    ),
                   ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text('Type', style: theme.textTheme.labelSmall?.copyWith(color: Colors.white70)),
-                    const SizedBox(height: 4),
-                    Text(card.type.name.toUpperCase(), style: theme.textTheme.bodySmall?.copyWith(color: Colors.white)),
-                  ],
-                ),
+                if (type == CardTileType.preview) const SizedBox(width: 32),
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(_holderDisplayText),
+                Text(_getCardTypeDisplayText),
               ],
             ),
           ],
         ),
       ),
+    );
+  }
+
+  String get _issuerDisplayText => _getDisplayText(card.issuer);
+  String get _networkDisplayText => _getDisplayText(card.network?.name);
+  String get _holderDisplayText => _getDisplayText(card.holderName);
+  String get _getCardTypeDisplayText => _getDisplayText(card.type.name);
+  String get _getCVVDisplayText => _getDisplayText(card.cvv);
+  
+  
+  String get _getExpiryDisplayText {
+    String seperator = '';
+    String month = '';
+    String year = '';
+
+    if (card.expiryMonth != 0 && card.expiryYear != 0) seperator = '/';
+    if (card.expiryMonth != 0) month = '${card.expiryMonth}';
+    if (card.expiryYear != 0) year = '${card.expiryYear}';
+    return '$month$seperator$year';
+  }
+  
+  String get _cardNumberDisplayText {
+    return type == CardTileType.masked
+        ? card.maskedNumberText
+        : card.cardNumberText;
+  }
+
+  String get _cardNameDisplayText => _getDisplayText(card.cardName);
+  String _getDisplayText(String? text, {bool upper = true}) {
+    if (text == null) return '';
+    if (upper) return text.toUpperCase();
+    return text;
+  }
+
+  BoxDecoration _getCardDecoration(ThemeData theme) {
+    return BoxDecoration(
+      borderRadius: BorderRadius.circular(UIConstants.cardRadius),
+      gradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          theme.colorScheme.primary
+              .withValues(alpha: UIConstants.cardGradientOpacity),
+          Color.lerp(theme.colorScheme.primary, Colors.black, 0.25)!
+              .withValues(alpha: UIConstants.cardGradientOpacity),
+        ],
+      ),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withAlpha(UIConstants.cardShadowAlpha),
+          blurRadius: UIConstants.cardShadowBlur,
+          offset: Offset(0, UIConstants.cardShadowOffsetY),
+        ),
+      ],
     );
   }
 }

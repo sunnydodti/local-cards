@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import '../enums/card_tile_type.dart';
+import '../enums/card_type.dart';
 import '../models/card.dart';
+import '../models/card_network.dart';
+import '../widgets/card_tile.dart';
 import '../widgets/my_appbar.dart';
 import '../widgets/mobile_wrapper.dart';
 
@@ -12,16 +16,37 @@ class AddCardScreen extends StatefulWidget {
 
 class _AddCardScreenState extends State<AddCardScreen> {
   final _formKey = GlobalKey<FormState>();
-  String? issuer = '';
+  final issuerController = TextEditingController();
+  final cardNameController = TextEditingController();
+  final numberController = TextEditingController();
+  final monthController = TextEditingController();
+  final yearController = TextEditingController();
+  final cvvController = TextEditingController();
+  final holderNameController = TextEditingController();
   CardNetwork? network = CardNetwork.values.first;
-  String? cardName = '';
-  String number = '';
-  int month = DateTime.now().month;
-  int year = DateTime.now().year + 3;
-  String? cvv = '';
-  String? holderName = '';
   CardType type = CardType.values.first;
   CardColorScheme? colorScheme;
+  late final CardViewModel card;
+
+  @override
+  void initState() {
+    super.initState();
+    card = CardViewModel();
+    card.type = type;
+    card.network = network;
+  }
+
+  @override
+  void dispose() {
+    issuerController.dispose();
+    cardNameController.dispose();
+    numberController.dispose();
+    monthController.dispose();
+    yearController.dispose();
+    cvvController.dispose();
+    holderNameController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,18 +57,9 @@ class _AddCardScreenState extends State<AddCardScreen> {
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-              child: _CardPreview(
-                bankName: issuer,
-                network: network,
-                cardNumber: number,
-                cardName: cardName,
-                month: month,
-                year: year,
-                cvv: cvv,
-                holderName: holderName,
-                cardType: type,
-                colorScheme: colorScheme,
-                masked: true,
+              child: CardTile(
+                type: CardTileType.preview,
+                card: card.toModel(id: ''),
               ),
             ),
             Expanded(
@@ -54,109 +70,15 @@ class _AddCardScreenState extends State<AddCardScreen> {
                     key: _formKey,
                     child: Column(
                       children: [
-                        TextFormField(
-                          initialValue: issuer,
-                          decoration: const InputDecoration(labelText: 'Issuer (Bank, etc)'),
-                          onChanged: (v) => setState(() => issuer = v),
-                          onSaved: (v) => issuer = v?.trim(),
-                        ),
-                        DropdownButtonFormField<CardNetwork>(
-                          value: network,
-                          items: CardNetwork.values
-                              .map((n) => DropdownMenuItem(value: n, child: Text(n.name.toUpperCase())))
-                              .toList(),
-                          onChanged: (v) => setState(() => network = v),
-                          decoration: const InputDecoration(labelText: 'Card Network'),
-                        ),
-                        Center(
-                          child: TextFormField(
-                            initialValue: number,
-                            decoration: const InputDecoration(labelText: 'Card Number'),
-                            keyboardType: TextInputType.number,
-                            onChanged: (v) => setState(() => number = v),
-                            onSaved: (v) => number = v?.replaceAll(' ', '') ?? '',
-                            validator: (v) => (v == null || v.trim().length < 12) ? 'Invalid' : null,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            Expanded(
-                              flex: 2,
-                              child: TextFormField(
-                                initialValue: cardName,
-                                decoration: const InputDecoration(labelText: 'Card Name (Black, Privilege, etc)'),
-                                onChanged: (v) => setState(() => cardName = v),
-                                onSaved: (v) => cardName = v?.trim(),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              flex: 1,
-                              child: TextFormField(
-                                initialValue: month.toString(),
-                                decoration: const InputDecoration(labelText: 'MM'),
-                                keyboardType: TextInputType.number,
-                                onChanged: (v) => setState(() => month = int.tryParse(v) ?? month),
-                                onSaved: (v) => month = int.tryParse(v ?? '') ?? month,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              flex: 1,
-                              child: TextFormField(
-                                initialValue: year.toString(),
-                                decoration: const InputDecoration(labelText: 'YYYY'),
-                                keyboardType: TextInputType.number,
-                                onChanged: (v) => setState(() => year = int.tryParse(v) ?? year),
-                                onSaved: (v) => year = int.tryParse(v ?? '') ?? year,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              flex: 1,
-                              child: TextFormField(
-                                initialValue: cvv,
-                                decoration: const InputDecoration(labelText: 'CVV'),
-                                keyboardType: TextInputType.number,
-                                onChanged: (v) => setState(() => cvv = v),
-                                onSaved: (v) => cvv = v?.trim(),
-                              ),
-                            ),
-                          ],
-                        ),
-                        TextFormField(
-                          initialValue: holderName,
-                          decoration: const InputDecoration(labelText: 'Cardholder Name (optional)'),
-                          onChanged: (v) => setState(() => holderName = v),
-                          onSaved: (v) => holderName = v?.trim(),
-                        ),
-                        DropdownButtonFormField<CardType>(
-                          value: type,
-                          items: CardType.values
-                              .map((t) => DropdownMenuItem(value: t, child: Text(t.name)))
-                              .toList(),
-                          onChanged: (v) {
-                            setState(() {
-                              type = v ?? CardType.values.first;
-                            });
-                          },
-                          decoration: const InputDecoration(labelText: 'Card Type'),
-                        ),
+                        _buildBuildIssuerField(),
+                        _buildNetworkField(),
+                        _buildCardNumberField(),
+                        _buildCardNameField(),
+                        _buildValidityAndCVVFields(),
+                        _buildCardHolderField(),
+                        _buildCardTypeField(),
                         const SizedBox(height: 24),
-                        ElevatedButton(
-                          onPressed: () {
-                            if (_formKey.currentState?.validate() ?? false) {
-                              _formKey.currentState?.save();
-                              // TODO: Add your card saving logic here, e.g. call provider/service
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Card saved!')),
-                              );
-                              Navigator.of(context).pop();
-                            }
-                          },
-                          child: const Text('Save Card'),
-                        ),
+                        _buildSaveButton(context),
                       ],
                     ),
                   ),
@@ -166,6 +88,156 @@ class _AddCardScreenState extends State<AddCardScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Row _buildValidityAndCVVFields() {
+    return Row(
+      children: [
+        Expanded(flex: 1, child: _buildMonthField()),
+        const SizedBox(width: 8),
+        Expanded(flex: 1, child: _buildYearField()),
+        const SizedBox(width: 8),
+        Expanded(flex: 1, child: _buildCVVField()),
+      ],
+    );
+  }
+
+  TextFormField _buildCVVField() {
+    return TextFormField(
+      controller: cvvController,
+      decoration: const InputDecoration(labelText: 'CVV'),
+      keyboardType: TextInputType.number,
+      maxLength: 4,
+      onChanged: (_) {
+        card.cvv = cvvController.text;
+        setState(() {});
+      },
+    );
+  }
+
+  TextFormField _buildYearField() {
+    return TextFormField(
+      controller: yearController,
+      decoration: const InputDecoration(labelText: 'YY'),
+      keyboardType: TextInputType.number,
+      maxLength: 2,
+      onChanged: (v) {
+        card.year = int.tryParse(v);
+        setState(() {});
+      },
+    );
+  }
+
+  TextFormField _buildMonthField() {
+    return TextFormField(
+      controller: monthController,
+      decoration: const InputDecoration(labelText: 'MM'),
+      keyboardType: TextInputType.number,
+      maxLength: 2,
+      onChanged: (_) {
+        card.month = int.tryParse(monthController.text);
+        setState(() {});
+      },
+    );
+  }
+
+  ElevatedButton _buildSaveButton(BuildContext context) {
+    return ElevatedButton(
+      onPressed: () {
+        if (_formKey.currentState?.validate() ?? false) {
+          // TODO: Add your card saving logic here, e.g. call provider/service
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Card saved!')),
+          );
+          Navigator.of(context).pop();
+        }
+      },
+      child: const Text('Save Card'),
+    );
+  }
+
+  DropdownButtonFormField<CardType> _buildCardTypeField() {
+    return DropdownButtonFormField<CardType>(
+      value: type,
+      items: CardType.values
+          .map((t) => DropdownMenuItem(value: t, child: Text(t.name)))
+          .toList(),
+      onChanged: (v) {
+        setState(() {
+          CardType c = CardType.values.firstWhere((e) => e == (v ?? type));
+          card.type = c;
+          type = c;
+        });
+      },
+      decoration: const InputDecoration(labelText: 'Card Type'),
+    );
+  }
+
+  TextFormField _buildCardHolderField() {
+    return TextFormField(
+      controller: holderNameController,
+      decoration:
+          const InputDecoration(labelText: 'Cardholder Name (optional)'),
+      onChanged: (_) {
+        card.holderName = holderNameController.text;
+        setState(() {});
+      },
+    );
+  }
+
+  TextFormField _buildCardNameField() {
+    return TextFormField(
+      controller: cardNameController,
+      decoration: const InputDecoration(labelText: 'Card Name'),
+      onChanged: (_) {
+        card.cardName = cardNameController.text;
+        setState(() {});
+      },
+    );
+  }
+
+  Center _buildCardNumberField() {
+    return Center(
+      child: TextFormField(
+        controller: numberController,
+        decoration: const InputDecoration(labelText: 'Card Number'),
+        keyboardType: TextInputType.number,
+        onChanged: (_) {
+          card.number = numberController.text;
+          setState(() {});
+        },
+        validator: (v) =>
+            (v == null || v.trim().length < 12) ? 'Invalid' : null,
+      ),
+    );
+  }
+
+  DropdownButtonFormField<CardNetwork> _buildNetworkField() {
+    return DropdownButtonFormField<CardNetwork>(
+      value: network,
+      items: CardNetwork.values
+          .map((n) =>
+              DropdownMenuItem(value: n, child: Text(n.name.toUpperCase())))
+          .toList(),
+      onChanged: (v) {
+        CardNetwork c =
+            CardNetwork.values.firstWhere((e) => e == (v ?? network));
+        card.network = c;
+        setState(() => network = c);
+      },
+      decoration: const InputDecoration(labelText: 'Card Network'),
+    );
+  }
+
+  TextFormField _buildBuildIssuerField() {
+    return TextFormField(
+      controller: issuerController,
+      decoration: const InputDecoration(labelText: 'Issuer (Bank, etc)'),
+      onChanged: (_) {
+        card.issuer = issuerController.text;
+        setState(() {});
+      },
     );
   }
 // ...existing code...
@@ -199,14 +271,19 @@ class _CardPreview extends StatelessWidget {
   });
 
   String _maskedDisplay(String number) {
-    final last = number.length >= 4 ? number.substring(number.length - 4) : number;
+    final last =
+        number.length >= 4 ? number.substring(number.length - 4) : number;
     return '•••• •••• •••• $last';
   }
 
   @override
   Widget build(BuildContext context) {
-    final bg = colorScheme?.bgColor != null ? Color(colorScheme!.bgColor) : Theme.of(context).colorScheme.primary;
-    final txt = colorScheme?.textColor != null ? Color(colorScheme!.textColor) : Colors.white;
+    final bg = colorScheme?.bgColor != null
+        ? Color(colorScheme!.bgColor)
+        : Theme.of(context).colorScheme.primary;
+    final txt = colorScheme?.textColor != null
+        ? Color(colorScheme!.textColor)
+        : Colors.white;
     final textTheme = Theme.of(context).textTheme;
     return AnimatedContainer(
       duration: const Duration(milliseconds: 400),
@@ -217,7 +294,10 @@ class _CardPreview extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         color: bg,
         boxShadow: [
-          BoxShadow(color: Colors.black.withAlpha(40), blurRadius: 16, offset: Offset(0, 6)),
+          BoxShadow(
+              color: Colors.black.withAlpha(40),
+              blurRadius: 16,
+              offset: Offset(0, 6)),
         ],
       ),
       child: Padding(
@@ -229,9 +309,11 @@ class _CardPreview extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: Text(bankName ?? '', style: textTheme.titleMedium?.copyWith(color: txt)),
+                  child: Text(bankName ?? '',
+                      style: textTheme.titleMedium?.copyWith(color: txt)),
                 ),
-                Text(network?.name.toUpperCase() ?? '', style: textTheme.titleMedium?.copyWith(color: txt)),
+                Text(network?.name.toUpperCase() ?? '',
+                    style: textTheme.titleMedium?.copyWith(color: txt)),
               ],
             ),
             const SizedBox(height: 10),
@@ -239,9 +321,12 @@ class _CardPreview extends StatelessWidget {
             Center(
               child: Text(
                 masked
-                  ? (cardNumber.isEmpty ? '•••• •••• •••• 0000' : _maskedDisplay(cardNumber))
-                  : (cardNumber.isEmpty ? '0000 0000 0000 0000' : cardNumber),
-                style: textTheme.headlineSmall?.copyWith(color: txt, letterSpacing: 2, fontWeight: FontWeight.bold),
+                    ? (cardNumber.isEmpty
+                        ? '•••• •••• •••• 0000'
+                        : _maskedDisplay(cardNumber))
+                    : (cardNumber.isEmpty ? '0000 0000 0000 0000' : cardNumber),
+                style: textTheme.headlineSmall?.copyWith(
+                    color: txt, letterSpacing: 2, fontWeight: FontWeight.bold),
               ),
             ),
             const SizedBox(height: 10),
@@ -249,11 +334,16 @@ class _CardPreview extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: Text(cardName ?? '', style: textTheme.bodyLarge?.copyWith(color: txt)),
+                  child: Text(cardName ?? '',
+                      style: textTheme.bodyLarge?.copyWith(color: txt)),
                 ),
                 Text(
-                  ((month != null && year != null) ? '${month.toString().padLeft(2, '0')}/${year.toString().substring(2)}' : '') +
-                  ((cvv != null && cvv!.isNotEmpty) ? '  ${cvv!.padRight(3, '•')}' : ''),
+                  ((month != null && year != null)
+                          ? '${month.toString().padLeft(2, '0')}/${year.toString().substring(2)}'
+                          : '') +
+                      ((cvv != null && cvv!.isNotEmpty)
+                          ? '  ${cvv!.padRight(3, '•')}'
+                          : ''),
                   style: textTheme.bodyLarge?.copyWith(color: txt),
                 ),
               ],
@@ -263,9 +353,11 @@ class _CardPreview extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: Text(holderName?.toUpperCase() ?? '', style: textTheme.bodyLarge?.copyWith(color: txt)),
+                  child: Text(holderName?.toUpperCase() ?? '',
+                      style: textTheme.bodyLarge?.copyWith(color: txt)),
                 ),
-                Text(cardType.name.toUpperCase(), style: textTheme.bodyLarge?.copyWith(color: txt)),
+                Text(cardType.name.toUpperCase(),
+                    style: textTheme.bodyLarge?.copyWith(color: txt)),
               ],
             ),
           ],

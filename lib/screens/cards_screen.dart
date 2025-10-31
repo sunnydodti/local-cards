@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../data/provider/card_provider.dart';
+import '../enums/card_tile_type.dart';
 import '../widgets/my_appbar.dart';
 import '../widgets/mobile_wrapper.dart';
 import '../widgets/card_tile.dart';
@@ -44,6 +45,7 @@ class CardsScreen extends StatelessWidget {
               itemCount: cards.length,
               separatorBuilder: (_, __) => const SizedBox(height: 8),
               itemBuilder: (context, i) => CardTile(
+                type: CardTileType.standard,
                 card: cards[i],
                 onEdit: (c) async {
                   await showDialog(

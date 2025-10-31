@@ -1,9 +1,7 @@
 import 'dart:convert';
 
-/// Type of a stored card.
-enum CardType { credit, debit, other }
-
-enum CardNetwork { visa, mastercard, amex, discover, rupay, diners, jcb, unionpay, other }
+import '../enums/card_type.dart';
+import 'card_network.dart';
 
 class CardColorScheme {
   final int bgColor;
@@ -11,13 +9,13 @@ class CardColorScheme {
   const CardColorScheme({required this.bgColor, required this.textColor});
 
   Map<String, dynamic> toMap() => {
-    'bgColor': bgColor,
-    'textColor': textColor,
-  };
+        'bgColor': bgColor,
+        'textColor': textColor,
+      };
   factory CardColorScheme.fromMap(Map<String, dynamic> map) => CardColorScheme(
-    bgColor: map['bgColor'] as int,
-    textColor: map['textColor'] as int,
-  );
+        bgColor: map['bgColor'] as int,
+        textColor: map['textColor'] as int,
+      );
 }
 
 extension CardTypeX on CardType {
@@ -44,7 +42,6 @@ extension CardTypeX on CardType {
     }
   }
 }
-
 
 class CardModel {
   final String id;
@@ -79,11 +76,33 @@ class CardModel {
         updatedAt = updatedAt ?? DateTime.now();
 
   /// Returns a masked card number suitable for UI (keeps last 4 digits).
+  
+  String get maskedNumberText {
+    String number = cardNumber;
+    final last =
+        number.length >= 4 ? number.substring(number.length - 4) : number;
+    final maskedLength = number.length - 4;
+    final buffer = StringBuffer();
+    for (int i = 0; i < maskedLength; i++) {
+      buffer.write('•');
+      if ((i + 1) % 4 == 0 && i != maskedLength - 1) {
+        buffer.write(' ');
+      }
+    }
+    final masked = buffer.toString();
+    return '$masked $last';
+  }
 
-  String get maskedNumber {
-    if (cardNumber.length <= 4) return cardNumber;
-    final last = cardNumber.substring(cardNumber.length - 4);
-    return '•••• •••• •••• $last';
+  String get cardNumberText {
+    String number = cardNumber;
+    final buffer = StringBuffer();
+    for (int i = 0; i < number.length; i++) {
+      buffer.write(number[i]);
+      if ((i + 1) % 4 == 0 && i != number.length - 1) {
+        buffer.write(' ');
+      }
+    }
+    return buffer.toString();
   }
 
   CardModel copyWith({
@@ -116,7 +135,6 @@ class CardModel {
     );
   }
 
-
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -139,7 +157,9 @@ class CardModel {
     return CardModel(
       id: map['id'] as String,
       issuer: map['issuer'] as String?,
-      network: map['network'] != null ? CardNetwork.values.firstWhere((e) => e.name == map['network']) : null,
+      network: map['network'] != null
+          ? CardNetwork.values.firstWhere((e) => e.name == map['network'])
+          : null,
       cardName: map['cardName'] as String?,
       cardNumber: map['cardNumber'] as String,
       expiryMonth: (map['expiryMonth'] as num).toInt(),
@@ -147,13 +167,63 @@ class CardModel {
       cvv: map['cvv'] as String?,
       holderName: map['holderName'] as String?,
       type: CardTypeX.fromString(map['type'] as String?),
-      colorScheme: map['colorScheme'] != null ? CardColorScheme.fromMap(Map<String, dynamic>.from(map['colorScheme'])) : null,
-      createdAt: DateTime.tryParse(map['createdAt'] as String? ?? '') ?? DateTime.now(),
-      updatedAt: DateTime.tryParse(map['updatedAt'] as String? ?? '') ?? DateTime.now(),
+      colorScheme: map['colorScheme'] != null
+          ? CardColorScheme.fromMap(
+              Map<String, dynamic>.from(map['colorScheme']))
+          : null,
+      createdAt: DateTime.tryParse(map['createdAt'] as String? ?? '') ??
+          DateTime.now(),
+      updatedAt: DateTime.tryParse(map['updatedAt'] as String? ?? '') ??
+          DateTime.now(),
     );
   }
 
   String toJson() => json.encode(toMap());
 
-  factory CardModel.fromJson(String source) => CardModel.fromMap(json.decode(source));
+  factory CardModel.fromJson(String source) =>
+      CardModel.fromMap(json.decode(source));
+}
+
+// make a card view model for UI purposes where I can edit fields from user input
+class CardViewModel {
+  String? issuer;
+  CardNetwork? network;
+  String? cardName;
+  String? number;
+  int? month;
+  int? year;
+  String? cvv;
+  String? holderName;
+  CardType type = CardType.credit;
+  CardColorScheme? colorScheme;
+
+  CardViewModel();
+
+  CardViewModel.fromModel(CardModel model) {
+    issuer = model.issuer;
+    network = model.network;
+    cardName = model.cardName;
+    number = model.cardNumber;
+    month = model.expiryMonth;
+    year = model.expiryYear;
+    cvv = model.cvv;
+    holderName = model.holderName;
+    type = model.type;
+    colorScheme = model.colorScheme;
+  }
+  CardModel toModel({required String id}) {
+    return CardModel(
+      id: id,
+      issuer: issuer,
+      network: network,
+      cardName: cardName,
+      cardNumber: number ?? '',
+      expiryMonth: month ?? 0,
+      expiryYear: year ?? 0,
+      cvv: cvv ?? '',
+      holderName: holderName ?? '',
+      type: type,
+      colorScheme: colorScheme,
+    );
+  }
 }

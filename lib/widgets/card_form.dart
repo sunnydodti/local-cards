@@ -23,7 +23,7 @@ class _CardFormDialogState extends State<CardFormDialog> {
   late String number;
   late int month;
   late int year;
-  late String? cvv;
+  late String cvv;
   late String? holderName;
   CardType type = CardType.credit;
   CardColorScheme? colorScheme;
@@ -94,20 +94,23 @@ class _CardFormDialogState extends State<CardFormDialog> {
             children: [
               TextFormField(
                 initialValue: issuer,
-                decoration: const InputDecoration(labelText: 'Issuer (Bank, etc)'),
+                decoration:
+                    const InputDecoration(labelText: 'Issuer (Bank, etc)'),
                 onSaved: (v) => issuer = v?.trim(),
               ),
               DropdownButtonFormField<CardNetwork>(
                 value: network,
                 items: CardNetwork.values
-                    .map((n) => DropdownMenuItem(value: n, child: Text(n.name.toUpperCase())))
+                    .map((n) => DropdownMenuItem(
+                        value: n, child: Text(n.name.toUpperCase())))
                     .toList(),
                 onChanged: (v) => setState(() => network = v),
                 decoration: const InputDecoration(labelText: 'Card Network'),
               ),
               TextFormField(
                 initialValue: cardName,
-                decoration: const InputDecoration(labelText: 'Card Name (Black, Privilege, etc)'),
+                decoration: const InputDecoration(
+                    labelText: 'Card Name (Black, Privilege, etc)'),
                 onSaved: (v) => cardName = v?.trim(),
               ),
               TextFormField(
@@ -115,7 +118,8 @@ class _CardFormDialogState extends State<CardFormDialog> {
                 decoration: const InputDecoration(labelText: 'Card Number'),
                 keyboardType: TextInputType.number,
                 onSaved: (v) => number = v?.replaceAll(' ', '') ?? '',
-                validator: (v) => (v == null || v.trim().length < 12) ? 'Invalid' : null,
+                validator: (v) =>
+                    (v == null || v.trim().length < 12) ? 'Invalid' : null,
               ),
               Row(
                 children: [
@@ -140,13 +144,15 @@ class _CardFormDialogState extends State<CardFormDialog> {
               ),
               TextFormField(
                 initialValue: cvv,
-                decoration: const InputDecoration(labelText: 'CVV/CVC/CVD (optional)'),
+                decoration:
+                    const InputDecoration(labelText: 'CVV/CVC/CVD (optional)'),
                 keyboardType: TextInputType.number,
-                onSaved: (v) => cvv = v?.trim(),
+                onSaved: (v) => cvv = v!.trim(),
               ),
               TextFormField(
                 initialValue: holderName,
-                decoration: const InputDecoration(labelText: 'Cardholder Name (optional)'),
+                decoration: const InputDecoration(
+                    labelText: 'Cardholder Name (optional)'),
                 onSaved: (v) => holderName = v?.trim(),
               ),
               DropdownButtonFormField<CardType>(
@@ -163,7 +169,9 @@ class _CardFormDialogState extends State<CardFormDialog> {
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
+        TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel')),
         ElevatedButton(onPressed: _save, child: const Text('Save')),
       ],
     );

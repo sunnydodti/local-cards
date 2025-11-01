@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../enums/card_tile_type.dart';
 import '../models/card.dart';
 import '../data/ui_constants.dart';
+import '../models/card_tile_detail_visibility.dart';
 import 'card_display_text.dart';
 
 typedef EditCallback = void Function(CardModel card);
@@ -13,13 +14,16 @@ class CardTile extends StatelessWidget {
   final CardTileType type;
   final EditCallback? onEdit;
   final DeleteCallback? onDelete;
+  final CardTileDetailVisibility detailVisibility;
 
-  const CardTile(
-      {super.key,
-      required this.card,
-      this.onEdit,
-      this.onDelete,
-      this.type = CardTileType.masked});
+  const CardTile({
+    super.key,
+    required this.card,
+    this.onEdit,
+    this.onDelete,
+    this.type = CardTileType.masked,
+    this.detailVisibility = const CardTileDetailVisibility(),
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -83,7 +87,7 @@ class CardTile extends StatelessWidget {
 
   Padding _displayCardNumber() {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12.0),
+      padding: const EdgeInsets.symmetric(vertical: 20.0),
       child: Center(
         child: Text(
           _cardNumberDisplayText,
@@ -125,30 +129,43 @@ class CardTile extends StatelessWidget {
   String get _networkDisplayText => _getDisplayText(card.network?.name);
   String get _holderDisplayText => _getDisplayText(card.holderName);
   String get _getCardTypeDisplayText => _getDisplayText(card.type.name);
-  String get _getCVVDisplayText => _getDisplayText(card.cvv);
+  String get _getCVVDisplayText =>
+      _getConditionalDisplayText(card.cvv, detailVisibility.showCVV);
 
-  String get _getExpiryDisplayText {
-    String seperator = '';
-    String month = '';
-    String year = '';
-
-    if (card.expiryMonth != 0 && card.expiryYear != 0) seperator = '/';
-    if (card.expiryMonth != 0) month = '${card.expiryMonth}';
-    if (card.expiryYear != 0) year = '${card.expiryYear}';
-    return '$month$seperator$year';
-  }
+  String get _getExpiryDisplayText => _getConditionalDisplayText(
+      card.getExpiryDisplayText, detailVisibility.showExpiry);
 
   String get _cardNumberDisplayText {
-    return type == CardTileType.masked
-        ? card.maskedNumberText
-        : card.cardNumberText;
+    if (type == CardTileType.masked) return card.maskedNumberText;
+    if (!detailVisibility.showNumber) return card.maskedNumberText;
+    return _getConditionalDisplayText(card.cardNumberText,
+        type != CardTileType.masked && detailVisibility.showNumber);
   }
 
   String get _cardNameDisplayText => _getDisplayText(card.cardName);
-  _getDisplayText(String? text, {bool upper = true}) {
+
+  String _getDisplayText(String? text, {bool upper = true}) {
     if (text == null) return '';
     if (upper) return text.toUpperCase();
     return text;
+  }
+
+  String _getConditionalDisplayText(String text, bool condition) {
+    if (condition) return text;
+
+    String maskedText = '';
+    for (int i = 0; i < text.length; i++) {
+      if (text[i] == ' ') {
+        maskedText += ' ';
+        continue;
+      }
+      if (text[i] == '/') {
+        maskedText += '/';
+        continue;
+      }
+      maskedText += '•';
+    }
+    return maskedText;
   }
 
   BoxDecoration _getCardDecoration(ThemeData theme) {

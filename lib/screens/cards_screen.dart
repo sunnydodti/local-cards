@@ -8,6 +8,7 @@ import '../widgets/mobile_wrapper.dart';
 import '../widgets/card_tile.dart';
 import '../widgets/card_form.dart';
 import 'add_card_screen.dart';
+import 'card_detail_screen.dart';
 
 class CardsScreen extends StatelessWidget {
   const CardsScreen({super.key});
@@ -44,17 +45,26 @@ class CardsScreen extends StatelessWidget {
               padding: const EdgeInsets.all(12),
               itemCount: cards.length,
               separatorBuilder: (_, __) => const SizedBox(height: 8),
-              itemBuilder: (context, i) => CardTile(
-                type: CardTileType.masked,
-                card: cards[i],
-                onEdit: (c) async {
-                  await showDialog(
-                      context: context,
-                      builder: (_) => CardFormDialog(existing: c));
+              itemBuilder: (context, i) => GestureDetector(
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => CardDetailScreen(cardId: cards[i].id),
+                    ),
+                  );
                 },
-                onDelete: (id) async {
-                  await provider.deleteCard(id);
-                },
+                child: CardTile(
+                  type: CardTileType.masked,
+                  card: cards[i],
+                  onEdit: (c) async {
+                    await showDialog(
+                        context: context,
+                        builder: (_) => CardFormDialog(existing: c));
+                  },
+                  onDelete: (id) async {
+                    await provider.deleteCard(id);
+                  },
+                ),
               ),
             );
           }),

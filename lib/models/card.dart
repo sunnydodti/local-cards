@@ -51,7 +51,7 @@ class CardModel {
   final String cardNumber;
   final int expiryMonth;
   final int expiryYear;
-  final String? cvv; // optional
+  final String cvv;
   final String? holderName; // optional
   final CardType type;
   final CardColorScheme? colorScheme;
@@ -66,10 +66,11 @@ class CardModel {
     required this.cardNumber,
     required this.expiryMonth,
     required this.expiryYear,
-    this.cvv,
+  required this.cvv,
     this.holderName,
     this.type = CardType.credit,
     this.colorScheme,
+  // removed duplicate cvv
     DateTime? createdAt,
     DateTime? updatedAt,
   })  : createdAt = createdAt ?? DateTime.now(),
@@ -105,6 +106,17 @@ class CardModel {
     return buffer.toString();
   }
 
+  String get getExpiryDisplayText {
+    String seperator = '';
+    String month = '';
+    String year = '';
+
+    if (expiryMonth != 0 && expiryYear != 0) seperator = '/';
+    if (expiryMonth != 0) month = '$expiryMonth';
+    if (expiryYear != 0) year = '$expiryYear';
+    return '$month$seperator$year';
+  }
+
   CardModel copyWith({
     String? issuer,
     CardNetwork? network,
@@ -126,7 +138,7 @@ class CardModel {
       cardNumber: cardNumber ?? this.cardNumber,
       expiryMonth: expiryMonth ?? this.expiryMonth,
       expiryYear: expiryYear ?? this.expiryYear,
-      cvv: cvv ?? this.cvv,
+  cvv: cvv ?? this.cvv,
       holderName: holderName ?? this.holderName,
       type: type ?? this.type,
       colorScheme: colorScheme ?? this.colorScheme,
@@ -164,7 +176,7 @@ class CardModel {
       cardNumber: map['cardNumber'] as String,
       expiryMonth: (map['expiryMonth'] as num).toInt(),
       expiryYear: (map['expiryYear'] as num).toInt(),
-      cvv: map['cvv'] as String?,
+  cvv: map['cvv'] as String,
       holderName: map['holderName'] as String?,
       type: CardTypeX.fromString(map['type'] as String?),
       colorScheme: map['colorScheme'] != null
@@ -192,7 +204,7 @@ class CardViewModel {
   String? number;
   int? month;
   int? year;
-  String? cvv;
+  String cvv = '';
   String? holderName;
   CardType type = CardType.credit;
   CardColorScheme? colorScheme;
@@ -206,7 +218,7 @@ class CardViewModel {
     number = model.cardNumber;
     month = model.expiryMonth;
     year = model.expiryYear;
-    cvv = model.cvv;
+  cvv = model.cvv;
     holderName = model.holderName;
     type = model.type;
     colorScheme = model.colorScheme;
@@ -220,7 +232,7 @@ class CardViewModel {
       cardNumber: number ?? '',
       expiryMonth: month ?? 0,
       expiryYear: year ?? 0,
-      cvv: cvv ?? '',
+  cvv: cvv,
       holderName: holderName ?? '',
       type: type,
       colorScheme: colorScheme,

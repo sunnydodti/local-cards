@@ -1,3 +1,4 @@
+import 'add_card_screen.dart';
 import 'package:flutter/material.dart';
 import '../widgets/my_button.dart';
 import 'package:flutter/services.dart';
@@ -69,8 +70,11 @@ class _CardDetailScreenState extends State<CardDetailScreen> {
                 Expanded(
                   child: MyButton(
                     onPressed: () {
-                      // TODO: Implement edit navigation
-                      // Navigator.of(context).push(MaterialPageRoute(builder: (_) => AddCardScreen(editCard: card!)));
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => AddCardScreen(editCard: card!),
+                        ),
+                      );
                     },
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,

@@ -10,7 +10,8 @@ import 'package:provider/provider.dart';
 import '../data/provider/card_provider.dart';
 
 class AddCardScreen extends StatefulWidget {
-  const AddCardScreen({super.key});
+  final CardModel? editCard;
+  const AddCardScreen({super.key, this.editCard});
 
   @override
   State<AddCardScreen> createState() => _AddCardScreenState();
@@ -33,9 +34,24 @@ class _AddCardScreenState extends State<AddCardScreen> {
   @override
   void initState() {
     super.initState();
-    card = CardViewModel();
-    card.type = type;
-    card.network = network;
+    if (widget.editCard != null) {
+      final c = widget.editCard!;
+      issuerController.text = c.issuer ?? '';
+      cardNameController.text = c.cardName ?? '';
+      numberController.text = c.cardNumber;
+      monthController.text = c.expiryMonth.toString();
+      yearController.text = c.expiryYear.toString();
+      cvvController.text = c.cvv;
+      holderNameController.text = c.holderName ?? '';
+      network = c.network;
+      type = c.type;
+      colorScheme = c.colorScheme;
+      card = CardViewModel.fromModel(c);
+    } else {
+      card = CardViewModel();
+      card.type = type;
+      card.network = network;
+    }
   }
 
   @override
@@ -148,18 +164,22 @@ class _AddCardScreenState extends State<AddCardScreen> {
     return ElevatedButton(
       onPressed: () async {
         if (_formKey.currentState?.validate() ?? false) {
-          // Generate a unique id (timestamp-based for simplicity)
-          final id = DateTime.now().millisecondsSinceEpoch.toString();
+          final isEdit = widget.editCard != null;
+          final id = isEdit ? widget.editCard!.id : DateTime.now().millisecondsSinceEpoch.toString();
           final cardModel = card.toModel(id: id);
-          await context.read<CardProvider>().addCard(cardModel);
+          if (isEdit) {
+            await context.read<CardProvider>().updateCard(cardModel);
+          } else {
+            await context.read<CardProvider>().addCard(cardModel);
+          }
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Card saved!')),
+            SnackBar(content: Text(isEdit ? 'Card updated!' : 'Card saved!')),
           );
           Navigator.of(context).pop();
         }
       },
-      child: const Text('Save Card'),
+      child: Text(widget.editCard != null ? 'Update Card' : 'Save Card'),
     );
   }
 

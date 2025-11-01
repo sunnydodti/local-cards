@@ -6,7 +6,7 @@ import '../data/provider/theme_provider.dart';
 class MyAppbar {
   static AppBar build(
     BuildContext context, {
-    String title = 'Sound Script',
+    String title = 'Local Cards',
     bool back = false,
   }) {
     Icon icon = Theme.of(context).brightness == Brightness.light

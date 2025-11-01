@@ -1,5 +1,5 @@
-
 import 'package:flutter/material.dart';
+import '../widgets/my_button.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
@@ -26,7 +26,7 @@ class _CardDetailScreenState extends State<CardDetailScreen> {
     card = context.read<CardProvider>().getById(widget.cardId);
     // No local state, provider handles toggles
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -56,16 +56,76 @@ class _CardDetailScreenState extends State<CardDetailScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 _copyButton(context, label: 'Number', value: card!.cardNumber),
-                _copyButton(context, label: 'Expiry', value: card!.getExpiryDisplayText),
+                _copyButton(context,
+                    label: 'Expiry', value: card!.getExpiryDisplayText),
                 _copyButton(context, label: 'CVV', value: card!.cvv),
               ],
             ),
             const SizedBox(height: 16),
             _toggleRow(context),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: MyButton(
+                    onPressed: () {
+                      // TODO: Implement edit navigation
+                      // Navigator.of(context).push(MaterialPageRoute(builder: (_) => AddCardScreen(editCard: card!)));
+                    },
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Icon(Icons.edit, size: 18),
+                        SizedBox(width: 8),
+                        Text('Edit'),
+                      ],
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: MyButton(
+                    onPressed: _handleDelete,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Icon(Icons.delete, color: Colors.red, size: 18),
+                        SizedBox(width: 8),
+                        Text('Delete', style: TextStyle(color: Colors.red)),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ],
         );
       },
     );
+  }
+
+  Future<void> _handleDelete() async {
+    {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Delete Card'),
+          content: const Text('Are you sure you want to delete this card?'),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: const Text('Cancel')),
+            TextButton(
+                onPressed: () => Navigator.of(ctx).pop(true),
+                child:
+                    const Text('Delete', style: TextStyle(color: Colors.red))),
+          ],
+        ),
+      );
+      if (confirmed == true) {
+        await context.read<CardProvider>().deleteCard(card!.id);
+        if (context.mounted) Navigator.of(context).pop();
+      }
+    }
   }
 
   Widget _toggleRow(BuildContext context) {
@@ -97,7 +157,8 @@ class _CardDetailScreenState extends State<CardDetailScreen> {
     );
   }
 
-  Widget _copyButton(BuildContext context, {required String label, required String value}) {
+  Widget _copyButton(BuildContext context,
+      {required String label, required String value}) {
     return ElevatedButton.icon(
       icon: const Icon(Icons.copy, size: 18),
       label: Text(label),

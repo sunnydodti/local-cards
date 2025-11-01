@@ -129,17 +129,18 @@ class CardTile extends StatelessWidget {
   String get _networkDisplayText => _getDisplayText(card.network?.name);
   String get _holderDisplayText => _getDisplayText(card.holderName);
   String get _getCardTypeDisplayText => _getDisplayText(card.type.name);
-  String get _getCVVDisplayText =>
-      _getConditionalDisplayText(card.cvv, detailVisibility.showCVV);
+  String get _getCVVDisplayText => _getConditionalDisplayText(
+      card.cvv, (detailVisibility.showCVV || type == CardTileType.preview));
 
   String get _getExpiryDisplayText => _getConditionalDisplayText(
-      card.getExpiryDisplayText, detailVisibility.showExpiry);
+      card.getExpiryDisplayText,
+      (detailVisibility.showExpiry || type == CardTileType.preview));
 
   String get _cardNumberDisplayText {
     if (type == CardTileType.masked) return card.maskedNumberText;
-    if (!detailVisibility.showNumber) return card.maskedNumberText;
+    if (type != CardTileType.preview && !detailVisibility.showNumber) return card.maskedNumberText;
     return _getConditionalDisplayText(card.cardNumberText,
-        type != CardTileType.masked && detailVisibility.showNumber);
+        type == CardTileType.preview || detailVisibility.showNumber);
   }
 
   String get _cardNameDisplayText => _getDisplayText(card.cardName);

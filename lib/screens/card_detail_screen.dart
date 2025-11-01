@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -18,15 +19,12 @@ class CardDetailScreen extends StatefulWidget {
 }
 
 class _CardDetailScreenState extends State<CardDetailScreen> {
-  bool showNumber = true;
-  bool showCVV = true;
-  bool showExpiry = true;
   CardModel? card;
-  
   @override
   void initState() {
-    card = context.read<CardProvider>().getById(widget.cardId);
     super.initState();
+    card = context.read<CardProvider>().getById(widget.cardId);
+    // No local state, provider handles toggles
   }
   
   @override
@@ -39,50 +37,61 @@ class _CardDetailScreenState extends State<CardDetailScreen> {
 
   Widget _displayBody(BuildContext context) {
     if (card == null) return const Center(child: Text('Card not found.'));
-    return ListView(
-      padding: const EdgeInsets.all(16.0),
-      children: [
-        CardTile(
-          card: card!,
-          type: CardTileType.detailed,
-          detailVisibility: CardTileDetailVisibility(
-            showNumber: showNumber,
-            showCVV: showCVV,
-            showExpiry: showExpiry,
-          ),
-        ),
-        const SizedBox(height: 24),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+    return Consumer<CardProvider>(
+      builder: (context, provider, _) {
+        return ListView(
+          padding: const EdgeInsets.all(12.0),
           children: [
-            _copyButton(context, label: 'Number', value: card!.cardNumber),
-            _copyButton(context, label: 'Expiry', value: card!.getExpiryDisplayText),
-            _copyButton(context, label: 'CVV', value: card!.cvv ?? ''),
+            CardTile(
+              card: card!,
+              type: CardTileType.detailed,
+              detailVisibility: CardTileDetailVisibility(
+                showNumber: provider.showNumber,
+                showCVV: provider.showCVV,
+                showExpiry: provider.showExpiry,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _copyButton(context, label: 'Number', value: card!.cardNumber),
+                _copyButton(context, label: 'Expiry', value: card!.getExpiryDisplayText),
+                _copyButton(context, label: 'CVV', value: card!.cvv),
+              ],
+            ),
+            const SizedBox(height: 16),
+            _toggleRow(context),
           ],
-        ),
-        const SizedBox(height: 24),
-        _toggleRow(),
-      ],
+        );
+      },
     );
   }
 
-  Widget _toggleRow() {
+  Widget _toggleRow(BuildContext context) {
+    final provider = Provider.of<CardProvider>(context, listen: false);
     return Column(
       children: [
         SwitchListTile(
+          dense: true,
+          visualDensity: VisualDensity.compact,
           title: const Text('Show Number'),
-          value: showNumber,
-          onChanged: (v) => setState(() => showNumber = v),
+          value: provider.showNumber,
+          onChanged: (v) => provider.setShowNumber(v),
         ),
         SwitchListTile(
+          dense: true,
+          visualDensity: VisualDensity.compact,
           title: const Text('Show Expiry'),
-          value: showExpiry,
-          onChanged: (v) => setState(() => showExpiry = v),
+          value: provider.showExpiry,
+          onChanged: (v) => provider.setShowExpiry(v),
         ),
         SwitchListTile(
+          dense: true,
+          visualDensity: VisualDensity.compact,
           title: const Text('Show CVV'),
-          value: showCVV,
-          onChanged: (v) => setState(() => showCVV = v),
+          value: provider.showCVV,
+          onChanged: (v) => provider.setShowCVV(v),
         ),
       ],
     );

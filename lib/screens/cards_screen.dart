@@ -56,11 +56,6 @@ class CardsScreen extends StatelessWidget {
                 child: CardTile(
                   type: CardTileType.masked,
                   card: cards[i],
-                  onEdit: (c) async {
-                    await showDialog(
-                        context: context,
-                        builder: (_) => CardFormDialog(existing: c));
-                  },
                   onDelete: (id) async {
                     await provider.deleteCard(id);
                   },

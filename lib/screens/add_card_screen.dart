@@ -6,6 +6,8 @@ import '../models/card_network.dart';
 import '../widgets/card_tile.dart';
 import '../widgets/my_appbar.dart';
 import '../widgets/mobile_wrapper.dart';
+import 'package:provider/provider.dart';
+import '../data/provider/card_provider.dart';
 
 class AddCardScreen extends StatefulWidget {
   const AddCardScreen({super.key});
@@ -144,9 +146,13 @@ class _AddCardScreenState extends State<AddCardScreen> {
 
   ElevatedButton _buildSaveButton(BuildContext context) {
     return ElevatedButton(
-      onPressed: () {
+      onPressed: () async {
         if (_formKey.currentState?.validate() ?? false) {
-          // TODO: Add your card saving logic here, e.g. call provider/service
+          // Generate a unique id (timestamp-based for simplicity)
+          final id = DateTime.now().millisecondsSinceEpoch.toString();
+          final cardModel = card.toModel(id: id);
+          await context.read<CardProvider>().addCard(cardModel);
+          if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Card saved!')),
           );
@@ -240,129 +246,5 @@ class _AddCardScreenState extends State<AddCardScreen> {
       },
     );
   }
-// ...existing code...
-// ...existing code...
 }
 
-class _CardPreview extends StatelessWidget {
-  final String? bankName;
-  final CardNetwork? network;
-  final String cardNumber;
-  final String? cardName;
-  final int? month;
-  final int? year;
-  final String? cvv;
-  final String? holderName;
-  final CardType cardType;
-  final CardColorScheme? colorScheme;
-  final bool masked;
-  const _CardPreview({
-    this.bankName,
-    this.network,
-    required this.cardNumber,
-    this.cardName,
-    this.month,
-    this.year,
-    this.cvv,
-    this.holderName,
-    required this.cardType,
-    this.colorScheme,
-    this.masked = false,
-  });
-
-  String _maskedDisplay(String number) {
-    final last =
-        number.length >= 4 ? number.substring(number.length - 4) : number;
-    return '•••• •••• •••• $last';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final bg = colorScheme?.bgColor != null
-        ? Color(colorScheme!.bgColor)
-        : Theme.of(context).colorScheme.primary;
-    final txt = colorScheme?.textColor != null
-        ? Color(colorScheme!.textColor)
-        : Colors.white;
-    final textTheme = Theme.of(context).textTheme;
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 400),
-      curve: Curves.easeInOut,
-      width: double.infinity,
-      height: 200,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
-        color: bg,
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withAlpha(40),
-              blurRadius: 16,
-              offset: Offset(0, 6)),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Row 1: Bank Name (left), Card Network (right)
-            Row(
-              children: [
-                Expanded(
-                  child: Text(bankName ?? '',
-                      style: textTheme.titleMedium?.copyWith(color: txt)),
-                ),
-                Text(network?.name.toUpperCase() ?? '',
-                    style: textTheme.titleMedium?.copyWith(color: txt)),
-              ],
-            ),
-            const SizedBox(height: 10),
-            // Row 2: Card Number (masked) centered
-            Center(
-              child: Text(
-                masked
-                    ? (cardNumber.isEmpty
-                        ? '•••• •••• •••• 0000'
-                        : _maskedDisplay(cardNumber))
-                    : (cardNumber.isEmpty ? '0000 0000 0000 0000' : cardNumber),
-                style: textTheme.headlineSmall?.copyWith(
-                    color: txt, letterSpacing: 2, fontWeight: FontWeight.bold),
-              ),
-            ),
-            const SizedBox(height: 10),
-            // Row 3: Card Name (left), Expiry and CVV (right)
-            Row(
-              children: [
-                Expanded(
-                  child: Text(cardName ?? '',
-                      style: textTheme.bodyLarge?.copyWith(color: txt)),
-                ),
-                Text(
-                  ((month != null && year != null)
-                          ? '${month.toString().padLeft(2, '0')}/${year.toString().substring(2)}'
-                          : '') +
-                      ((cvv != null && cvv!.isNotEmpty)
-                          ? '  ${cvv!.padRight(3, '•')}'
-                          : ''),
-                  style: textTheme.bodyLarge?.copyWith(color: txt),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            // Row 4: Cardholder Name (left), Card Type (right)
-            Row(
-              children: [
-                Expanded(
-                  child: Text(holderName?.toUpperCase() ?? '',
-                      style: textTheme.bodyLarge?.copyWith(color: txt)),
-                ),
-                Text(cardType.name.toUpperCase(),
-                    style: textTheme.bodyLarge?.copyWith(color: txt)),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}

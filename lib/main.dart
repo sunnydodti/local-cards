@@ -5,6 +5,7 @@ import 'app.dart';
 import 'data/provider/card_provider.dart';
 import 'data/provider/theme_provider.dart';
 import 'service/startup_service.dart';
+import 'services/security_service.dart';
 
 void main() async {
   await StartupService.init();
@@ -13,6 +14,7 @@ void main() async {
     providers: [
       ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ChangeNotifierProvider(create: (_) => CardProvider()),
+      ChangeNotifierProvider(create: (_) => SecurityService()),
     ],
     child: const LocalCards(),
   ));

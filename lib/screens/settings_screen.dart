@@ -4,6 +4,7 @@ import '../data/provider/card_provider.dart';
 import '../widgets/my_appbar.dart';
 import '../widgets/mobile_wrapper.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../services/security_service.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -62,6 +63,32 @@ class SettingsScreen extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                // Security Toggle
+                Consumer<SecurityService>(
+                  builder: (context, securityService, _) => Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              'App Lock (Fingerprint/Device Lock)',
+                              style: theme.textTheme.titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          Switch(
+                            value: securityService.lockEnabled,
+                            onChanged: (val) =>
+                                securityService.setLockEnabled(val),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
                 // App Icon
                 Container(
                   width: 120,
@@ -103,7 +130,8 @@ class SettingsScreen extends StatelessWidget {
                         children: [
                           Text(
                             'Defaults',
-                            style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                            style: theme.textTheme.titleLarge
+                                ?.copyWith(fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 16),
                           SwitchListTile(
@@ -136,29 +164,34 @@ class SettingsScreen extends StatelessWidget {
                       children: [
                         Text(
                           'Project Links',
-                          style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                          style: theme.textTheme.titleLarge
+                              ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 16),
                         ListTile(
                           leading: const Icon(Icons.code),
                           title: const Text('Source Code'),
-                          subtitle: const Text('github.com/sunnydodti/local-cards'),
+                          subtitle:
+                              const Text('github.com/sunnydodti/local-cards'),
                           trailing: const Icon(Icons.open_in_new, size: 20),
-                          onTap: () => _launchUrl('https://github.com/sunnydodti/local-cards'),
+                          onTap: () => _launchUrl(
+                              'https://github.com/sunnydodti/local-cards'),
                         ),
                         ListTile(
                           leading: const Icon(Icons.download),
                           title: const Text('Download'),
                           subtitle: const Text('Latest Release'),
                           trailing: const Icon(Icons.open_in_new, size: 20),
-                          onTap: () => _launchUrl('https://github.com/sunnydodti/local-cards/releases/latest'),
+                          onTap: () => _launchUrl(
+                              'https://github.com/sunnydodti/local-cards/releases/latest'),
                         ),
                         ListTile(
                           leading: const Icon(Icons.inventory),
                           title: const Text('All Releases'),
                           subtitle: const Text('View Release History'),
                           trailing: const Icon(Icons.open_in_new, size: 20),
-                          onTap: () => _launchUrl('https://github.com/sunnydodti/local-cards/releases'),
+                          onTap: () => _launchUrl(
+                              'https://github.com/sunnydodti/local-cards/releases'),
                         ),
                       ],
                     ),
@@ -174,7 +207,8 @@ class SettingsScreen extends StatelessWidget {
                       children: [
                         Text(
                           'Developer',
-                          style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                          style: theme.textTheme.titleLarge
+                              ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 16),
                         ListTile(
@@ -202,7 +236,8 @@ class SettingsScreen extends StatelessWidget {
                           title: const Text('sunnydodti.dev@gmail.com'),
                           trailing: const Icon(Icons.open_in_new, size: 16),
                           dense: true,
-                          onTap: () => _launchUrl('mailto:sunnydodti.dev@gmail.com'),
+                          onTap: () =>
+                              _launchUrl('mailto:sunnydodti.dev@gmail.com'),
                         ),
                       ],
                     ),
@@ -218,7 +253,8 @@ class SettingsScreen extends StatelessWidget {
                       children: [
                         Text(
                           'Connect',
-                          style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                          style: theme.textTheme.titleLarge
+                              ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 16),
                         ListTile(
@@ -233,14 +269,16 @@ class SettingsScreen extends StatelessWidget {
                           title: const Text('GitHub'),
                           subtitle: const Text('github.com/sunnydodti'),
                           trailing: const Icon(Icons.open_in_new, size: 20),
-                          onTap: () => _launchUrl('https://github.com/sunnydodti'),
+                          onTap: () =>
+                              _launchUrl('https://github.com/sunnydodti'),
                         ),
                         ListTile(
                           leading: const Icon(Icons.business),
                           title: const Text('LinkedIn'),
                           subtitle: const Text('linkedin.com/in/sunnydodti'),
                           trailing: const Icon(Icons.open_in_new, size: 20),
-                          onTap: () => _launchUrl('https://www.linkedin.com/in/sunnydodti'),
+                          onTap: () => _launchUrl(
+                              'https://www.linkedin.com/in/sunnydodti'),
                         ),
                       ],
                     ),
@@ -256,7 +294,8 @@ class SettingsScreen extends StatelessWidget {
                       children: [
                         Text(
                           'Features',
-                          style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                          style: theme.textTheme.titleLarge
+                              ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 16),
                         _buildFeatureItem(

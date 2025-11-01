@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import 'data/constants.dart';
 import 'data/provider/theme_provider.dart';
 import 'screens/cards_screen.dart';
+
+import 'widgets/auth_gate.dart';
 import 'widgets/mobile_wrapper.dart';
 
 class LocalCards extends StatelessWidget {
@@ -14,8 +16,10 @@ class LocalCards extends StatelessWidget {
     return MaterialApp(
       title: Constants.appDisplayName,
       theme: context.watch<ThemeProvider>().theme,
-      home: MobileWrapper(
-        child: CardsScreen(),
+      home: AuthGate(
+        child: MobileWrapper(
+          child: CardsScreen(),
+        ),
       ),
     );
   }

@@ -7,7 +7,9 @@ import '../widgets/my_appbar.dart';
 import '../widgets/mobile_wrapper.dart';
 import '../widgets/card_tile.dart';
 import 'add_card_screen.dart';
+
 import 'card_detail_screen.dart';
+import 'settings_screen.dart';
 
 class CardsScreen extends StatelessWidget {
   const CardsScreen({super.key});
@@ -16,7 +18,10 @@ class CardsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return MobileWrapper(
       child: Scaffold(
-        appBar: MyAppbar.build(context), 
+        appBar: MyAppbar.build(
+          context,
+          leading: _buildSettingsButton(context),
+        ),
         body: SafeArea(
           child: Consumer<CardProvider>(builder: (context, provider, _) {
             if (provider.loading) {
@@ -31,9 +36,11 @@ class CardsScreen extends StatelessWidget {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text('No cards yet', style: Theme.of(context).textTheme.titleLarge),
+                      Text('No cards yet',
+                          style: Theme.of(context).textTheme.titleLarge),
                       const SizedBox(height: 12),
-                      Text('Tap + to add your first card', textAlign: TextAlign.center),
+                      Text('Tap + to add your first card',
+                          textAlign: TextAlign.center),
                     ],
                   ),
                 ),
@@ -74,6 +81,17 @@ class CardsScreen extends StatelessWidget {
           child: const Icon(Icons.add),
         ),
       ),
+    );
+  }
+
+  IconButton _buildSettingsButton(BuildContext context) {
+    return IconButton(
+      onPressed: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const SettingsScreen()),
+        );
+      },
+      icon: const Icon(Icons.settings_outlined),
     );
   }
 }

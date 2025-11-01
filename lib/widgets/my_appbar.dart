@@ -8,7 +8,9 @@ class MyAppbar {
     BuildContext context, {
     String title = 'Local Cards',
     bool back = false,
+    Widget? leading,
   }) {
+    assert(leading == null || !back, 'Cannot provide both leading widget and back button');
     Icon icon = Theme.of(context).brightness == Brightness.light
         ? Icon(Icons.light_mode_outlined)
         : Icon(Icons.dark_mode_outlined);
@@ -19,7 +21,7 @@ class MyAppbar {
     return AppBar(
       title: Text(title),
       centerTitle: true,
-      leading: back ? backButton : null,
+      leading: back ? backButton : leading,
       actions: [
         IconButton(
             onPressed: () => context.read<ThemeProvider>().toggleTheme(),

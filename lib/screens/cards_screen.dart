@@ -45,7 +45,7 @@ class CardsScreen extends StatelessWidget {
               itemCount: cards.length,
               separatorBuilder: (_, __) => const SizedBox(height: 8),
               itemBuilder: (context, i) => CardTile(
-                type: CardTileType.standard,
+                type: CardTileType.masked,
                 card: cards[i],
                 onEdit: (c) async {
                   await showDialog(

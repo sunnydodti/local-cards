@@ -70,13 +70,13 @@ class _AddCardScreenState extends State<AddCardScreen> {
                     key: _formKey,
                     child: Column(
                       children: [
+                        _buildCardNameField(),
                         _buildBuildIssuerField(),
                         _buildNetworkField(),
+                        _buildCardTypeField(),
                         _buildCardNumberField(),
-                        _buildCardNameField(),
                         _buildValidityAndCVVFields(),
                         _buildCardHolderField(),
-                        _buildCardTypeField(),
                         const SizedBox(height: 24),
                         _buildSaveButton(context),
                       ],

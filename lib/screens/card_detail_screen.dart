@@ -4,7 +4,6 @@ import '../widgets/my_button.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
-import '../models/card.dart';
 import '../data/provider/card_provider.dart';
 import '../models/card_tile_detail_visibility.dart';
 import '../widgets/card_tile.dart';
@@ -20,11 +19,9 @@ class CardDetailScreen extends StatefulWidget {
 }
 
 class _CardDetailScreenState extends State<CardDetailScreen> {
-  CardModel? card;
   @override
   void initState() {
     super.initState();
-    card = context.read<CardProvider>().getById(widget.cardId);
     // No local state, provider handles toggles
   }
 
@@ -37,14 +34,17 @@ class _CardDetailScreenState extends State<CardDetailScreen> {
   }
 
   Widget _displayBody(BuildContext context) {
-    if (card == null) return const Center(child: Text('Card not found.'));
     return Consumer<CardProvider>(
       builder: (context, provider, _) {
+        final card = provider.getById(widget.cardId);
+        if (card == null) {
+          return const Center(child: Text('Card not found.'));
+        }
         return ListView(
           padding: const EdgeInsets.all(12.0),
           children: [
             CardTile(
-              card: card!,
+              card: card,
               type: CardTileType.detailed,
               detailVisibility: CardTileDetailVisibility(
                 showNumber: provider.showNumber,
@@ -56,10 +56,10 @@ class _CardDetailScreenState extends State<CardDetailScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _copyButton(context, label: 'Number', value: card!.cardNumber),
+                _copyButton(context, label: 'Number', value: card.cardNumber),
                 _copyButton(context,
-                    label: 'Expiry', value: card!.getExpiryDisplayText),
-                _copyButton(context, label: 'CVV', value: card!.cvv),
+                    label: 'Expiry', value: card.getExpiryDisplayText),
+                _copyButton(context, label: 'CVV', value: card.cvv),
               ],
             ),
             const SizedBox(height: 16),
@@ -72,7 +72,7 @@ class _CardDetailScreenState extends State<CardDetailScreen> {
                     onPressed: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (_) => AddCardScreen(editCard: card!),
+                          builder: (_) => AddCardScreen(editCard: card),
                         ),
                       );
                     },
@@ -108,27 +108,26 @@ class _CardDetailScreenState extends State<CardDetailScreen> {
   }
 
   Future<void> _handleDelete() async {
-    {
-      final confirmed = await showDialog<bool>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text('Delete Card'),
-          content: const Text('Are you sure you want to delete this card?'),
-          actions: [
-            TextButton(
-                onPressed: () => Navigator.of(ctx).pop(false),
-                child: const Text('Cancel')),
-            TextButton(
-                onPressed: () => Navigator.of(ctx).pop(true),
-                child:
-                    const Text('Delete', style: TextStyle(color: Colors.red))),
-          ],
-        ),
-      );
-      if (confirmed == true) {
-        await context.read<CardProvider>().deleteCard(card!.id);
-        if (context.mounted) Navigator.of(context).pop();
-      }
+    final card = context.read<CardProvider>().getById(widget.cardId);
+    if (card == null) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Card'),
+        content: const Text('Are you sure you want to delete this card?'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              child: const Text('Delete', style: TextStyle(color: Colors.red))),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      await context.read<CardProvider>().deleteCard(card.id);
+      if (context.mounted) Navigator.of(context).pop();
     }
   }
 
